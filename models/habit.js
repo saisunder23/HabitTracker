@@ -1,5 +1,9 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../index'); // Path to the root index.js file
+const sequelize = require('../database');
+
+if (!sequelize) {
+  console.error("Sequelize instance is undefined.");
+}
 
 const Habit = sequelize.define('Habit', {
   habit_id: {
@@ -12,19 +16,13 @@ const Habit = sequelize.define('Habit', {
     allowNull: false,
   },
   description: {
-    type: DataTypes.TEXT,
+    type: DataTypes.STRING,
   },
   goal: {
     type: DataTypes.INTEGER,
-    allowNull: false,
   },
   point_value: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
   },
 }, {
   tableName: 'habits',
