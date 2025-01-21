@@ -1,5 +1,13 @@
+// models/team.js file 
+
+
 const { DataTypes } = require('sequelize');
-const sequelize = require('../index');
+const sequelize = require('../database');
+
+if (!sequelize || typeof sequelize.define !== 'function') {
+  throw new Error('Sequelize instance not found or not initialized correctly.');
+}
+
 
 const Team = sequelize.define('Team', {
   team_id: {

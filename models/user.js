@@ -1,5 +1,12 @@
+// models/user.js file 
+
+
 const { DataTypes } = require('sequelize');
-const sequelize = require('../index'); // Import the Sequelize instance
+const sequelize = require('../database');
+
+if (!sequelize || typeof sequelize.define !== 'function') {
+  throw new Error('Sequelize instance not found or not initialized correctly.');
+}
 
 const User = sequelize.define('User', {
   user_id: {
