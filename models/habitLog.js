@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
 const Habit = require('./habit');  // Import the Habit model
-const User = require('./user');    // Assuming a User model exists
+const User = require('./users');    // Assuming a User model exists
 
 const HabitLog = sequelize.define('HabitLog', {
   log_id: {

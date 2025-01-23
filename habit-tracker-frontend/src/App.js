@@ -1,94 +1,116 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography } from '@mui/material';
-import AddHabitForm from './components/AddHabitForm';
 import HabitGrid from './components/HabitGrid';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
+import AddHabitForm from './components/AddHabitForm';
+import Auth from './components/Auth';
+import './components/App.css';
 
 function App() {
   const [habits, setHabits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const API_URL = 'http://localhost:3000';
 
+  // Check if the user is logged in on page load
   useEffect(() => {
-    fetch(`${API_BASE_URL}/habits`)
-      .then((response) => response.json())
-      .then((data) => {
-        setHabits(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching habits:', error);
-        setError('Failed to fetch habits');
-        setLoading(false);
-      });
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      fetchHabits();
+    }
   }, []);
 
-  const handleNewHabit = async (newHabit) => {
+  // Fetch habits from backend
+  const fetchHabits = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/habits`, {
+      const response = await fetch(`${API_URL}/habits`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setHabits(data);
+      } else {
+        console.error('Failed to fetch habits');
+      }
+    } catch (error) {
+      console.error('Error fetching habits:', error);
+    }
+  };
+
+  // Handle adding a new habit
+  const handleAddHabit = async (habitName) => {
+    try {
+      const response = await fetch(`${API_URL}/habits`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify(newHabit),
+        body: JSON.stringify({ name: habitName, points: 0 }),
       });
 
       if (response.ok) {
-        const addedHabit = await response.json();
-        setHabits((prevHabits) => [...prevHabits, addedHabit]);
+        const newHabit = await response.json();
+        setHabits([...habits, newHabit]);
       } else {
         console.error('Failed to add habit');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error adding habit:', error);
     }
   };
 
-  const handleDeleteHabit = async (habitId) => {
-    if (!habitId) {
-      console.error('Invalid habit ID');
-      return;
-    }
-
-    const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
-    if (!confirmDelete) return;
+  // Handle checking off a habit
+  const handleCheck = async (index) => {
+    const updatedHabits = [...habits];
+    updatedHabits[index].points += 1;
+    setHabits(updatedHabits);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/habits/${habitId}`, {
-        method: 'DELETE',
+      await fetch(`${API_URL}/habits/${habits[index].id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ points: updatedHabits[index].points }),
       });
-
-      if (response.ok) {
-        setHabits((prevHabits) => prevHabits.filter((habit) => habit.habit_id !== habitId));
-        console.log('Habit deleted successfully');
-      } else {
-        console.error('Failed to delete habit');
-      }
     } catch (error) {
-      console.error('Error deleting habit:', error);
+      console.error('Error updating habit:', error);
     }
+  };
+
+  // Handle user login and registration
+  const handleAuthSuccess = (userData, token) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', token);
+    fetchHabits();
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    setUser(null);
+    setHabits([]);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ textAlign: 'center', mt: 5 }}>
-        <Typography variant="h2" gutterBottom>
-          Habit Tracker
-        </Typography>
-
-        {loading && <Typography>Loading habits...</Typography>}
-        {error && <Typography color="error">{error}</Typography>}
-
-        <Box sx={{ mt: 4 }}>
-          {!loading && <HabitGrid habits={habits} onDeleteHabit={handleDeleteHabit} />}
-        </Box>
-
-        <Box sx={{ mt: 5 }}>
-          <AddHabitForm onHabitAdded={handleNewHabit} />
-        </Box>
-      </Box>
-    </Container>
+    <div style={{ textAlign: 'center', padding: '20px', fontFamily: 'Arial' }}>
+      <h1>Simple Habit Tracker</h1>
+      {!user ? (
+        <Auth onAuthSuccess={handleAuthSuccess} />
+      ) : (
+        <>
+          <button onClick={handleLogout} style={{ marginBottom: '20px' }}>
+            Logout
+          </button>
+          <AddHabitForm onAddHabit={handleAddHabit} />
+          <HabitGrid habits={habits} onCheck={handleCheck} />
+        </>
+      )}
+    </div>
   );
 }
 
