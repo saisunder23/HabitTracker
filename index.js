@@ -15,8 +15,8 @@ app.use(express.json());
 app.use('/habits', habitsRoutes);
 
 // Sync database (if needed)
-sequelize.sync()
-  .then(() => console.log('Database synchronized'))
+sequelize.sync({ force: true })
+  .then(() => console.log('Database synchronized (all tables dropped and recreated)'))
   .catch((err) => console.error('Error syncing database:', err));
 
 // Start the server

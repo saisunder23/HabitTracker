@@ -47,7 +47,6 @@ exports.getHabitById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate ID
     if (!id) {
       return res.status(400).json({ error: 'Habit ID is required' });
     }
@@ -70,7 +69,6 @@ exports.updateHabit = async (req, res) => {
     const { id } = req.params;
     const { habit_name, description, goal, point_value } = req.body;
 
-    // Validate ID and required fields
     if (!id) {
       return res.status(400).json({ error: 'Habit ID is required' });
     }
@@ -100,7 +98,6 @@ exports.deleteHabit = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate ID
     if (!id) {
       return res.status(400).json({ error: 'Habit ID is required' });
     }
@@ -111,9 +108,31 @@ exports.deleteHabit = async (req, res) => {
     }
 
     await habit.destroy();
-    res.status(200).json({ message: 'Habit deleted successfully' });
+    res.status(200).json({ message: `Habit with ID ${id} deleted successfully` });
   } catch (error) {
-    console.error('Error deleting habit:', error);
+    console.error(`Error deleting habit ID ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to delete habit' });
+  }
+};
+
+// Mark a habit as completed
+exports.markHabitAsCompleted = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const habit = await Habit.findByPk(id);
+    if (!habit) {
+      return res.status(404).json({ error: 'Habit not found' });
+    }
+
+    await habit.update({
+      is_completed: true,
+      completed_at: new Date(), // Set completion date to current timestamp
+    });
+
+    res.status(200).json(habit);
+  } catch (error) {
+    console.error('Error marking habit as completed:', error);
+    res.status(500).json({ error: 'Failed to mark habit as completed' });
   }
 };

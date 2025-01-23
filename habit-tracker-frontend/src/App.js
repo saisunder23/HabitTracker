@@ -1,56 +1,94 @@
 import React, { useState, useEffect } from 'react';
+import { Container, Box, Typography } from '@mui/material';
 import AddHabitForm from './components/AddHabitForm';
+import HabitGrid from './components/HabitGrid';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;  // Use environment variable
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
 
 function App() {
   const [habits, setHabits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch habits from the backend
   useEffect(() => {
     fetch(`${API_BASE_URL}/habits`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch habits');
-        }
-        return response.json();
+      .then((response) => response.json())
+      .then((data) => {
+        setHabits(data);
+        setLoading(false);
       })
-      .then((data) => setHabits(data))
-      .catch((error) => console.error('Error fetching habits:', error));
+      .catch((error) => {
+        console.error('Error fetching habits:', error);
+        setError('Failed to fetch habits');
+        setLoading(false);
+      });
   }, []);
 
-  // Function to handle adding a new habit
   const handleNewHabit = async (newHabit) => {
     try {
       const response = await fetch(`${API_BASE_URL}/habits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(newHabit),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to add habit');
+      if (response.ok) {
+        const addedHabit = await response.json();
+        setHabits((prevHabits) => [...prevHabits, addedHabit]);
+      } else {
+        console.error('Failed to add habit');
       }
-
-      const savedHabit = await response.json();
-      setHabits([...habits, savedHabit]);  // Update the state with the new habit
     } catch (error) {
-      console.error('Error adding habit:', error);
+      console.error('Error:', error);
+    }
+  };
+
+  const handleDeleteHabit = async (habitId) => {
+    if (!habitId) {
+      console.error('Invalid habit ID');
+      return;
+    }
+
+    const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/habits/${habitId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setHabits((prevHabits) => prevHabits.filter((habit) => habit.habit_id !== habitId));
+        console.log('Habit deleted successfully');
+      } else {
+        console.error('Failed to delete habit');
+      }
+    } catch (error) {
+      console.error('Error deleting habit:', error);
     }
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>Habit Tracker</h1>
-      <ul>
-        {habits.map((habit) => (
-          <li key={habit.habit_id}>
-            {habit.habit_name} - Goal: {habit.goal} - Points: {habit.point_value}
-          </li>
-        ))}
-      </ul>
-      <AddHabitForm onHabitAdded={handleNewHabit} />
-    </div>
+    <Container maxWidth="lg">
+      <Box sx={{ textAlign: 'center', mt: 5 }}>
+        <Typography variant="h2" gutterBottom>
+          Habit Tracker
+        </Typography>
+
+        {loading && <Typography>Loading habits...</Typography>}
+        {error && <Typography color="error">{error}</Typography>}
+
+        <Box sx={{ mt: 4 }}>
+          {!loading && <HabitGrid habits={habits} onDeleteHabit={handleDeleteHabit} />}
+        </Box>
+
+        <Box sx={{ mt: 5 }}>
+          <AddHabitForm onHabitAdded={handleNewHabit} />
+        </Box>
+      </Box>
+    </Container>
   );
 }
 

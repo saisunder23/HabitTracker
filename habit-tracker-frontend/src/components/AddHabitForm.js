@@ -1,65 +1,56 @@
 import React, { useState } from 'react';
+import { TextField, Button } from '@mui/material';
 
 const AddHabitForm = ({ onHabitAdded }) => {
   const [habitName, setHabitName] = useState('');
-  const [goal, setGoal] = useState('');
-  const [points, setPoints] = useState('');
+  const [goalPoints, setGoalPoints] = useState('');
+  const [habitPointValue, setHabitPointValue] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    const newHabit = {
-      habit_name: habitName,
-      description: 'A new habit to track',  // You can make this an input field later
-      goal: parseInt(goal),
-      point_value: parseInt(points),
-    };
-
-    try {
-      const response = await fetch('http://localhost:3000/habits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newHabit),
-      });
-
-      if (response.ok) {
-        const habit = await response.json();
-        onHabitAdded(habit); // Update the UI
-        setHabitName('');
-        setGoal('');
-        setPoints('');
-      } else {
-        console.error('Error adding habit');
-      }
-    } catch (error) {
-      console.error('Error:', error);
+    if (!habitName || !goalPoints || !habitPointValue) {
+      alert('Please fill out all fields');
+      return;
     }
+    onHabitAdded({
+      habit_name: habitName,
+      goal: parseInt(goalPoints),
+      point_value: parseInt(habitPointValue),
+    });
+    setHabitName('');
+    setGoalPoints('');
+    setHabitPointValue('');
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
-      <input
-        type="text"
-        placeholder="Habit Name"
+    <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
+      <h2 style={{ color: 'blue' }}>Add a New Habit</h2>
+      <TextField
+        fullWidth
+        label="Habit Name"
         value={habitName}
         onChange={(e) => setHabitName(e.target.value)}
-        required
+        margin="normal"
       />
-      <input
+      <TextField
+        fullWidth
+        label="Goal Points for Week"
+        value={goalPoints}
+        onChange={(e) => setGoalPoints(e.target.value)}
+        margin="normal"
         type="number"
-        placeholder="Goal"
-        value={goal}
-        onChange={(e) => setGoal(e.target.value)}
-        required
       />
-      <input
+      <TextField
+        fullWidth
+        label="Habit Point Value"
+        value={habitPointValue}
+        onChange={(e) => setHabitPointValue(e.target.value)}
+        margin="normal"
         type="number"
-        placeholder="Points"
-        value={points}
-        onChange={(e) => setPoints(e.target.value)}
-        required
       />
-      <button type="submit">Add Habit</button>
+      <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: '10px' }}>
+        Add Habit
+      </Button>
     </form>
   );
 };

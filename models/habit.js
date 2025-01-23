@@ -24,6 +24,14 @@ const Habit = sequelize.define('Habit', {
   point_value: {
     type: DataTypes.INTEGER,
   },
+  is_completed: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,  // Default to false
+  },
+  completed_at: {
+    type: DataTypes.DATE,
+    allowNull: true,  // Completion timestamp
+  },
 }, {
   tableName: 'habits',
   timestamps: false,
