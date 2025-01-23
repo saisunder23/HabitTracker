@@ -1,20 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const habitController = require('../controllers/habitController');
+const habitLogController = require('../controllers/habitLogController');
 
-// Route to create a new habit
-router.post('/', habitController.createHabit); // Create
+// Habit routes
+router.post('/', habitController.createHabit);
+router.get('/', habitController.getAllHabits);
+router.get('/:id', habitController.getHabitById);
+router.put('/:id', habitController.updateHabit);
+router.delete('/:id', habitController.deleteHabit);
+router.put('/:id/complete', habitController.markHabitAsCompleted);
 
-// Route to get all habits
-router.get('/', habitController.getAllHabits); // Read all
-
-// Route to get a habit by its ID
-router.get('/:id', habitController.getHabitById); // Read one
-
-// Route to update a habit's details
-router.put('/:id', habitController.updateHabit); // Update
-
-// Route to delete a habit by its ID
-router.delete('/:id', habitController.deleteHabit); // Delete
+// Habit log routes
+router.post('/:id/log', habitLogController.logHabitCompletion);
+router.get('/:id/logs', habitLogController.getHabitLogs);
 
 module.exports = router;

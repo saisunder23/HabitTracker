@@ -1,12 +1,7 @@
-// models/habitLog.js file 
-
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
-
-if (!sequelize || typeof sequelize.define !== 'function') {
-  throw new Error('Sequelize instance not found or not initialized correctly.');
-}
-
+const Habit = require('./habit');  // Import the Habit model
+const User = require('./user');    // Assuming a User model exists
 
 const HabitLog = sequelize.define('HabitLog', {
   log_id: {
@@ -14,37 +9,40 @@ const HabitLog = sequelize.define('HabitLog', {
     primaryKey: true,
     autoIncrement: true,
   },
-  team_habit_id: {
+  habit_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: Habit,
+      key: 'habit_id',
+    },
+    onDelete: 'CASCADE',
   },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: User,
+      key: 'user_id',
+    },
+    onDelete: 'CASCADE',
   },
   log_date: {
     type: DataTypes.DATE,
     allowNull: false,
-  },
-  status: {
-    type: DataTypes.ENUM('completed', 'incomplete'),
-    allowNull: false,
-  },
-  comment: {
-    type: DataTypes.TEXT,
-  },
-  rating: {
-    type: DataTypes.ENUM('easy', 'medium', 'hard'),
-  },
-  points_earned: {
-    type: DataTypes.INTEGER,
-  },
-  created_at: {
-    type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+  is_completed: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false, // Default to false
+  },
+  completed_at: {
+    type: DataTypes.DATE,
+    allowNull: true,  // Nullable until habit is completed
+  },
 }, {
-  tableName: 'habits_log',
+  tableName: 'habit_logs',
   timestamps: false,
 });
 

@@ -12,7 +12,14 @@ models.TeamHabit = require('./teamHabit');
 models.HabitLog = require('./habitLog');
 models.Leaderboard = require('./leaderboard');
 
-// Set up model associations if needed
+// Set up relationships between models
+models.Habit.hasMany(models.HabitLog, { foreignKey: 'habit_id', onDelete: 'CASCADE' });
+models.HabitLog.belongsTo(models.Habit, { foreignKey: 'habit_id' });
+
+models.User.hasMany(models.HabitLog, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+models.HabitLog.belongsTo(models.User, { foreignKey: 'user_id' });
+
+// Dynamic associations if needed
 Object.values(models).forEach(model => {
   if (model.associate) {
     model.associate(models);
